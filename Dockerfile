@@ -6,22 +6,39 @@ FROM alpine/git:2.36.2 as download
 COPY builder/clone.sh /clone.sh
 
 # Clone the repos and clean unnecessary files
-RUN . /clone.sh taming-transformers https://github.com/CompVis/taming-transformers.git 24268930bf1dce879235a7fddd0b2355b84d7ea6 && \
+RUN . /clone.sh repositories taming-transformers https://github.com/CompVis/taming-transformers.git 24268930bf1dce879235a7fddd0b2355b84d7ea6 && \
     rm -rf data assets **/*.ipynb
 
-RUN . /clone.sh stable-diffusion-stability-ai https://github.com/Stability-AI/stablediffusion.git 47b6b607fdd31875c9279cd2f4f16b92e4ea958e && \
+RUN . /clone.sh repositories stable-diffusion-stability-ai https://github.com/Stability-AI/stablediffusion.git 47b6b607fdd31875c9279cd2f4f16b92e4ea958e && \
     rm -rf assets data/**/*.png data/**/*.jpg data/**/*.gif
 
-RUN . /clone.sh CodeFormer https://github.com/sczhou/CodeFormer.git c5b4593074ba6214284d6acd5f1719b6c5d739af && \
+RUN . /clone.sh repositories CodeFormer https://github.com/sczhou/CodeFormer.git c5b4593074ba6214284d6acd5f1719b6c5d739af && \
     rm -rf assets inputs
 
-RUN . /clone.sh BLIP https://github.com/salesforce/BLIP.git 48211a1594f1321b00f14c9f7a5b4813144b2fb9 && \
-    . /clone.sh k-diffusion https://github.com/crowsonkb/k-diffusion.git 5b3af030dd83e0297272d861c19477735d0317ec && \
-    . /clone.sh clip-interrogator https://github.com/pharmapsychotic/clip-interrogator 2486589f24165c8e3b303f84e9dbbea318df83e8 && \
-    . /clone.sh generative-models https://github.com/Stability-AI/generative-models 45c443b316737a4ab6e40413d7794a7f5657c19f
+RUN . /clone.sh repositories BLIP https://github.com/salesforce/BLIP.git 48211a1594f1321b00f14c9f7a5b4813144b2fb9 && \
+    . /clone.sh repositories k-diffusion https://github.com/crowsonkb/k-diffusion.git 5b3af030dd83e0297272d861c19477735d0317ec && \
+    . /clone.sh repositories clip-interrogator https://github.com/pharmapsychotic/clip-interrogator 2486589f24165c8e3b303f84e9dbbea318df83e8 && \
+    . /clone.sh repositories generative-models https://github.com/Stability-AI/generative-models 45c443b316737a4ab6e40413d7794a7f5657c19f
 
-RUN apk add --no-cache wget && \
-    wget -O /model.safetensors https://civitai.com/api/download/models/15236
+RUN . /clone.sh extensions clip-interrogator-ext https://github.com/pharmapsychotic/clip-interrogator-ext 0f1a4591f82b93859a1b854afb79494f39384662 && \
+    . /clone.sh extensions ultimate-upscale-for-automatic1111 https://github.com/Coyote-A/ultimate-upscale-for-automatic1111 728ffcec7fa69c83b9e653bf5b96932acdce750f && \
+    . /clone.sh extensions sd-webui-controlnet https://github.com/Mikubill/sd-webui-controlnet 7a4805c8ea3256a0eab3512280bd4f84ca0c8182
+
+RUN mkdir -p ControlNet
+
+# copy local models instead of downloading
+#RUN apk add --no-cache wget && \
+#    wget --progress=dot:giga -O /model.safetensors https://civitai.com/api/download/models/156110
+#    wget --progress=dot:giga -O ControlNet/control_v11p_sd15_lineart.pth https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_lineart.pth
+#    wget --progress=dot:giga -O ControlNet/control_scribble-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_scribble-fp16.safetensors
+#    wget --progress=dot:giga -O ControlNet/control_canny-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_canny-fp16.safetensors
+#    wget --progress=dot:giga -O ControlNet/lineart/sk_model.pth https://huggingface.co/lllyasviel/Annotators/resolve/main/sk_model.pth
+
+COPY models/deliberate_v3.safetensors /model.safetensors
+COPY models/control_v11p_sd15_lineart.pth /ControlNet/control_v11p_sd15_lineart.pth
+COPY models/control_canny-fp16.safetensors /ControlNet/control_canny-fp16.safetensors
+COPY models/control_scribble-fp16.safetensors /ControlNet/control_scribble-fp16.safetensors
+COPY models/sk_model.pth /ControlNet/lineart/sk_model.pth
 
 
 
@@ -46,6 +63,7 @@ RUN apt-get update && \
     apt-get autoremove -y && rm -rf /var/lib/apt/lists/* && apt-get clean -y
 
 RUN --mount=type=cache,target=/cache --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -60,6 +78,13 @@ RUN mkdir ${ROOT}/interrogate && cp ${ROOT}/repositories/clip-interrogator/data/
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r ${ROOT}/repositories/CodeFormer/requirements.txt
 
+COPY --from=download /extensions/ ${ROOT}/extensions/
+COPY --from=download /ControlNet/ ${ROOT}/models/ControlNet/
+COPY --from=download /ControlNet/lineart/ ${ROOT}/extensions/sd-webui-controlnet/annotator/downloads/lineart/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r ${ROOT}/extensions/sd-webui-controlnet/requirements.txt && \
+    pip install clip-interrogator==0.6.0
+
 # Install Python dependencies (Worker Template)
 COPY builder/requirements.txt /requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -70,7 +95,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 ADD src .
 
 COPY builder/cache.py /stable-diffusion-webui/cache.py
-RUN cd /stable-diffusion-webui && python cache.py --use-cpu=all --ckpt /model.safetensors
+RUN cd /stable-diffusion-webui && python cache.py --use-cpu=all --ckpt /model.safetensors --no-half
 
 # Cleanup section (Worker Template)
 RUN apt-get autoremove -y && \
