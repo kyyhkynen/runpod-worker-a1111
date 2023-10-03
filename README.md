@@ -1,32 +1,26 @@
-<div align="center">
+# Runpod Automatic1111 Worker
 
-<h1>Automatic1111 | Worker</h1>
+See [original README](https://github.com/runpod-workers/worker-a1111/README.md) for actual information.
 
-[![CI | Test Worker](https://github.com/runpod-workers/worker-template/actions/workflows/CI-test_worker.yml/badge.svg)](https://github.com/runpod-workers/worker-template/actions/workflows/CI-test_worker.yml)
-&nbsp;
-[![Docker Image](https://github.com/runpod-workers/worker-template/actions/workflows/CD-docker_dev.yml/badge.svg)](https://github.com/runpod-workers/worker-template/actions/workflows/CD-docker_dev.yml)
+## Changes in this fork:
 
-This worker is a RunPod worker that uses the Stable Diffusion model for AI tasks. The worker is built upon the Stable Diffusion WebUI, which is a user interface for Stable Diffusion AI models.
-</div>
+-   support any A1111 API calls
+-   add extensions: clip-interrogator, controlnet, ultimate upscale
+-   add models: deliberate v3, controlnet canny/lineart/scribble
 
-## Model
+## How to use
 
-The worker uses the Stable Diffusion model, which has been optimized for RunPod. This model is stored as a SafeTensors file, which is a format that facilitates efficient loading and execution of AI models. You may download the model file from the following link: here.
+1. build with docker & push to repository
 
-## Building the Worker
+    ```bash
+    docker build . --platform=linux/amd64 -t <YOUR_TAG_NAME> --push
+    ```
 
-The worker is built using a Dockerfile. The Dockerfile specifies the base image, environment variables, system package dependencies, Python dependencies, and the steps to install and setup the Stable Diffusion WebUI. It also downloads the model and sets up the API server using supervisor.
+2. [create runpod template & endpoint](https://docs.runpod.io/docs/template-creation)
 
-The Python dependencies are specified in requirements.txt. The primary dependency is runpod==0.9.4.
+3. call the API
 
-## Running the Worker
+    ```bash
+    curl -H "Content-Type: application/json" -H "Authorization: Bearer <YOUR_API_KEY>" -X POST --data '{"input": { "endpoint": "sdapi/v1/txt2img", "method": "POST", "payload": {"prompt": "cute cat"}}}' https://api.runpod.ai/v2/<YOUR_API_ENDPOINT>/runsync | jq -r ".output.images[0]" | base64 -D > image.png
 
-The worker can be run using the start.sh script. This script starts the init system and runs the serverless handler script.
-
-## API
-
-The worker provides an API for inference. The API is set up using supervisor, and the configuration is specified in webui_api.conf. The API runs on port 3000.
-
-## Serverless Handler
-
-The serverless handler (rp_handler.py) is a Python script that handles inference requests. It defines a function handler(event) that takes an inference request, runs the inference using the Stable Diffusion model, and returns the output.
+    ```
