@@ -2,10 +2,10 @@
 
 set -Eeuox pipefail
 
-mkdir -p /repositories/"$1"
-cd /repositories/"$1"
+mkdir -p /"$1"/"$2"
+cd /"$1"/"$2"
 git init
-git remote add origin "$2"
-git fetch origin "$3" --depth=1
-git reset --hard "$3"
+git remote add origin "$3"
+git fetch origin "$4" --depth=1
+git reset --hard "$4"
 rm -rf .git
