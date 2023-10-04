@@ -24,21 +24,24 @@ RUN . /clone.sh extensions clip-interrogator-ext https://github.com/pharmapsycho
     . /clone.sh extensions ultimate-upscale-for-automatic1111 https://github.com/Coyote-A/ultimate-upscale-for-automatic1111 728ffcec7fa69c83b9e653bf5b96932acdce750f && \
     . /clone.sh extensions sd-webui-controlnet https://github.com/Mikubill/sd-webui-controlnet 7a4805c8ea3256a0eab3512280bd4f84ca0c8182
 
-RUN mkdir -p ControlNet
+RUN mkdir -p models
 
 # copy local models instead of downloading
 #RUN apk add --no-cache wget && \
 #    wget --progress=dot:giga -O /model.safetensors https://civitai.com/api/download/models/156110
-#    wget --progress=dot:giga -O ControlNet/control_v11p_sd15_lineart.pth https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_lineart.pth
-#    wget --progress=dot:giga -O ControlNet/control_scribble-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_scribble-fp16.safetensors
-#    wget --progress=dot:giga -O ControlNet/control_canny-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_canny-fp16.safetensors
-#    wget --progress=dot:giga -O ControlNet/lineart/sk_model.pth https://huggingface.co/lllyasviel/Annotators/resolve/main/sk_model.pth
+#    wget --progress=dot:giga -O models/ControlNet/control_v11p_sd15_lineart.pth https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_lineart.pth
+#    wget --progress=dot:giga -O models/ControlNet/control_scribble-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_scribble-fp16.safetensors
+#    wget --progress=dot:giga -O models/ControlNet/control_canny-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_canny-fp16.safetensors
+#    wget --progress=dot:giga -O models/ControlNet/annotators/lineart/sk_model.pth https://huggingface.co/lllyasviel/Annotators/resolve/main/sk_model.pth
+#    wget --progress=dot:giga -O models/ESRGAN/ESRGAN_4x.pth https://github.com/cszn/KAIR/releases/download/v1.0/ESRGAN.pth
+
 
 COPY models/deliberate_v3.safetensors /model.safetensors
-COPY models/control_v11p_sd15_lineart.pth /ControlNet/control_v11p_sd15_lineart.pth
-COPY models/control_canny-fp16.safetensors /ControlNet/control_canny-fp16.safetensors
-COPY models/control_scribble-fp16.safetensors /ControlNet/control_scribble-fp16.safetensors
-COPY models/sk_model.pth /ControlNet/lineart/sk_model.pth
+COPY models/control_v11p_sd15_lineart.pth /models/ControlNet/control_v11p_sd15_lineart.pth
+COPY models/control_canny-fp16.safetensors /models/ControlNet/control_canny-fp16.safetensors
+COPY models/control_scribble-fp16.safetensors /models/ControlNet/control_scribble-fp16.safetensors
+COPY models/sk_model.pth /models/ControlNet/annotators/lineart/sk_model.pth
+COPY models/ESRGAN.pth /models/ESRGAN/ESRGAN_4x.pth
 
 
 
@@ -79,8 +82,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r ${ROOT}/repositories/CodeFormer/requirements.txt
 
 COPY --from=download /extensions/ ${ROOT}/extensions/
-COPY --from=download /ControlNet/ ${ROOT}/models/ControlNet/
-COPY --from=download /ControlNet/lineart/ ${ROOT}/extensions/sd-webui-controlnet/annotator/downloads/lineart/
+COPY --from=download /models/ ${ROOT}/models/
+COPY --from=download /models/ControlNet/annotators/lineart/ ${ROOT}/extensions/sd-webui-controlnet/annotator/downloads/lineart/
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r ${ROOT}/extensions/sd-webui-controlnet/requirements.txt && \
     pip install clip-interrogator==0.6.0
