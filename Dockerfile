@@ -29,15 +29,15 @@ RUN mkdir -p models
 # copy local models instead of downloading
 #RUN apk add --no-cache wget && \
 #    wget --progress=dot:giga -O /model.safetensors https://huggingface.co/XpucT/Deliberate/resolve/main/Deliberate_v3.safetensors
-#    wget --progress=dot:giga -O models/ControlNet/control_v11p_sd15_lineart.pth https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_lineart.pth
-#    wget --progress=dot:giga -O models/ControlNet/control_scribble-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_scribble-fp16.safetensors
-#    wget --progress=dot:giga -O models/ControlNet/control_canny-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_canny-fp16.safetensors
+#    wget --progress=dot:giga -O models/ControlNet/control_v11p_sd15_lineart_fp16.safetensors https://huggingface.co/comfyanonymous/ControlNet-v1-1_fp16_safetensors/resolve/main/control_v11p_sd15_lineart_fp16.safetensors
+#    wget --progress=dot:giga -O models/ControlNet/control_scribble-fp16.safetensors https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_scribble-fp16.safetensors
+#    wget --progress=dot:giga -O models/ControlNet/control_canny-fp16.safetensors https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_canny-fp16.safetensors
 #    wget --progress=dot:giga -O models/ControlNet/annotators/lineart/sk_model.pth https://huggingface.co/lllyasviel/Annotators/resolve/main/sk_model.pth
 #    wget --progress=dot:giga -O models/ESRGAN/ESRGAN_4x.pth https://github.com/cszn/KAIR/releases/download/v1.0/ESRGAN.pth
 
 
 COPY models/deliberate_v3.safetensors /model.safetensors
-COPY models/control_v11p_sd15_lineart.pth /models/ControlNet/control_v11p_sd15_lineart.pth
+COPY models/control_v11p_sd15_lineart_fp16.safetensors /models/ControlNet/control_v11p_sd15_lineart_fp16.safetensors
 COPY models/control_canny-fp16.safetensors /models/ControlNet/control_canny-fp16.safetensors
 COPY models/control_scribble-fp16.safetensors /models/ControlNet/control_scribble-fp16.safetensors
 COPY models/sk_model.pth /models/ControlNet/annotators/lineart/sk_model.pth
