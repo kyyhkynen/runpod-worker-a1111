@@ -28,7 +28,7 @@ RUN mkdir -p models
 
 # copy local models instead of downloading
 #RUN apk add --no-cache wget && \
-#    wget --progress=dot:giga -O /model.safetensors https://civitai.com/api/download/models/156110
+#    wget --progress=dot:giga -O /model.safetensors https://huggingface.co/XpucT/Deliberate/resolve/main/Deliberate_v3.safetensors
 #    wget --progress=dot:giga -O models/ControlNet/control_v11p_sd15_lineart.pth https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_lineart.pth
 #    wget --progress=dot:giga -O models/ControlNet/control_scribble-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_scribble-fp16.safetensors
 #    wget --progress=dot:giga -O models/ControlNet/control_canny-fp16.pth https://huggingface.co/webui/ControlNet-modules-safetensors/resolve/main/control_canny-fp16.safetensors
@@ -46,10 +46,11 @@ COPY models/ESRGAN.pth /models/ESRGAN/ESRGAN_4x.pth
 
 
 # ---------------------------------------------------------------------------- #
-#                        Stage 3: Build the final image                        #
+#                        Stage 2: Build the final image                        #
 # ---------------------------------------------------------------------------- #
 FROM python:3.10.9-slim
 
+# webui version
 ARG SHA=5ef669de080814067961f28357256e8fe27544f4
 
 ENV DEBIAN_FRONTEND=noninteractive \
