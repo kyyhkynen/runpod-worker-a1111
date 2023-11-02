@@ -1,13 +1,11 @@
 import time
-import os
 
 import runpod
 import requests
 from requests.adapters import HTTPAdapter, Retry
 from runpod.serverless.modules.rp_logger import RunPodLogger
 
-WEBUI_PORT = os.environ.get("WEBUI_PORT", 3000)
-BASE_URL = f"http://127.0.0.1:{WEBUI_PORT}"
+BASE_URL = "http://127.0.0.1:3000"
 TIMEOUT = 600
 
 session = requests.Session()

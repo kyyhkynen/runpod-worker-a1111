@@ -42,6 +42,7 @@ COPY models/control_canny-fp16.safetensors /models/ControlNet/control_canny-fp16
 COPY models/control_scribble-fp16.safetensors /models/ControlNet/control_scribble-fp16.safetensors
 COPY models/sk_model.pth /models/ControlNet/annotators/lineart/sk_model.pth
 COPY models/ESRGAN.pth /models/ESRGAN/ESRGAN_4x.pth
+COPY models/model_base_caption_capfilt_large.pth /models/BLIP/model_base_caption_capfilt_large.pth
 
 
 
@@ -63,7 +64,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && \
     apt install -y \
-    fonts-dejavu-core rsync git jq moreutils aria2 wget libgoogle-perftools-dev procps && \
+    fonts-dejavu-core rsync git jq moreutils aria2 wget libgoogle-perftools-dev procps nginx && \
     apt-get autoremove -y && rm -rf /var/lib/apt/lists/* && apt-get clean -y
 
 RUN --mount=type=cache,target=/cache --mount=type=cache,target=/root/.cache/pip \
@@ -100,6 +101,9 @@ ADD src .
 
 COPY builder/cache.py /stable-diffusion-webui/cache.py
 RUN cd /stable-diffusion-webui && python cache.py --use-cpu=all --ckpt /model.safetensors --no-half
+
+# NGINX Proxy
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Cleanup section (Worker Template)
 RUN apt-get autoremove -y && \
